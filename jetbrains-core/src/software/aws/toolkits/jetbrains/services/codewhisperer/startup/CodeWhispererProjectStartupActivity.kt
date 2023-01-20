@@ -12,6 +12,7 @@ import software.aws.toolkits.jetbrains.core.explorer.refreshDevToolTree
 import software.aws.toolkits.jetbrains.services.codewhisperer.credentials.CodeWhispererLoginType
 import software.aws.toolkits.jetbrains.services.codewhisperer.explorer.CodeWhispererExplorerActionManager
 import software.aws.toolkits.jetbrains.services.codewhisperer.explorer.isCodeWhispererEnabled
+import software.aws.toolkits.jetbrains.services.codewhisperer.importadder.CodeWhispererImportAdder
 import software.aws.toolkits.jetbrains.services.codewhisperer.status.CodeWhispererStatusBarManager
 import software.aws.toolkits.jetbrains.services.codewhisperer.util.CodeWhispererConstants
 import software.aws.toolkits.jetbrains.services.codewhisperer.util.CodeWhispererUtil.notifyErrorAccountless
@@ -32,6 +33,7 @@ class CodeWhispererProjectStartupActivity : StartupActivity.DumbAware {
      * (2) existing users open the IDE (automatically triggered)
      */
     override fun runActivity(project: Project) {
+        CodeWhispererImportAdder.getInstance()
         if (!ApplicationManager.getApplication().isUnitTestMode) {
             CodeWhispererStatusBarManager.getInstance(project).updateWidget()
         }

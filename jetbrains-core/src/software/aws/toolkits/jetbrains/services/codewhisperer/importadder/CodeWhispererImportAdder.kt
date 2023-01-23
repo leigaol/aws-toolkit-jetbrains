@@ -1,6 +1,7 @@
 package software.aws.toolkits.jetbrains.services.codewhisperer.importadder
 
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.Document
@@ -17,7 +18,6 @@ import com.jetbrains.python.psi.PyElementGenerator
 import com.jetbrains.python.psi.PyFile
 import software.aws.toolkits.core.utils.error
 import software.aws.toolkits.core.utils.getLogger
-import com.jetbrains.python.psi.PyPsiFacade;
 import software.aws.toolkits.jetbrains.services.codewhisperer.model.InvocationContext
 import software.aws.toolkits.jetbrains.services.codewhisperer.model.SessionContext
 import software.aws.toolkits.jetbrains.services.codewhisperer.popup.CodeWhispererPopupManager.Companion.CODEWHISPERER_USER_ACTION_PERFORMED
@@ -38,9 +38,10 @@ class CodeWhispererImportAdder {
                     LOG.error { "AFTER ACCEPT" }
                     if (psiFile is PsiJavaFile) {
                         LOG.error { "JAVA" }
-                        getInstance().insertImportStatementJava(project, document, psiFile, "java.util.ArrayList")
+                        getInstance().insertImportStatementJava(project, document, psiFile, "import java.util.ArrayList;","java.util.ArrayList")
                     } else if (psiFile is PyFile) {
                         getInstance().insertImportStatementPython(project, document, psiFile, "import pandas as pd")
+                    } else {
                         LOG.error { "Other language" }
                     }
                 }
@@ -55,16 +56,21 @@ class CodeWhispererImportAdder {
         }
     }
 
-    private fun insertImportStatementJava(project: Project, document: Document, psiJavaFile: PsiJavaFile, statements: String) {
+    private fun insertImportStatementJava(project: Project, document: Document, psiJavaFile: PsiJavaFile, statement: String, qualifiedName: String) {
+        LOG.error{"JJAVA"}
         val currentImports = psiJavaFile.importList
-        if (currentImports?.findSingleImportStatement(statements) != null) {
+        val className = qualifiedName.split('.').last()
+        if (currentImports?.findSingleImportStatement(className) == null) {
             LOG.error { "Import Stmt does not exists" }
-            val importClass = JavaPsiFacade.getInstance(project).findClass(statements, GlobalSearchScope.everythingScope(project))
+            val importClass = JavaPsiFacade.getInstance(project).findClass(qualifiedName, GlobalSearchScope.everythingScope(project))
             if (importClass != null) {
                 LOG.error { "ADD importClass" }
                 val importElement: PsiImportStatement = PsiElementFactory.getInstance(project).createImportStatement(importClass)
-                psiJavaFile.importList?.add(importElement)
+                runWriteAction {
+                    psiJavaFile.importList?.add(importElement)
+                }
             } else {
+                //TODO:
                 LOG.error { "No local import importClass" }
                 val existingImports = psiJavaFile.importList?.allImportStatements
                 val existingPackages = psiJavaFile.packageStatement
@@ -73,33 +79,27 @@ class CodeWhispererImportAdder {
                 if(existingImports != null) {
                     offset = existingImports.last().endOffset+1
                 }
-                this.insertRawImportStatementToDocument(project, document, statements, offset)
+                this.insertRawImportStatementToDocument(project, document, statement, offset)
             }
         }
 
     }
 
-    private fun insertImportStatementPython(project: Project, document: Document, pyFile: PyFile, statements: String) {
-        val currentImports = pyFile.importTargets
-        val currentFromImports = pyFile.fromImports
+    private fun insertImportStatementPython(project: Project, document: Document, pyFile: PyFile, statement: String) {
+        LOG.error{"SPYTHON"}
+        val currentImports = pyFile.importBlock
         var exists = false;
         currentImports.forEach {
-            if (it.text == statements) {
-                exists = true
-                it
-            }
-        }
-        currentFromImports.forEach {
-            if (it.text == statements) {
+            if (it.text == statement) {
                 exists = true
             }
         }
         if (!exists) {
-            val importElement = PyElementGenerator.getInstance(project).createImportElement(LanguageLevel.PYTHON310, statements, "")
-            currentImports.add(0, importElement)
-
+            LOG.error { "Import Stmt does not exists" }
+            var offset = 0
+            if(currentImports.size != 0) offset = currentImports.last().endOffset
+            this.insertRawImportStatementToDocument(project, document, "\n"+statement, offset)
         }
-
     }
 
 

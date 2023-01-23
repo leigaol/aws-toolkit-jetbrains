@@ -14,7 +14,7 @@ import com.intellij.psi.PsiImportStatement
 import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.refactoring.suggested.endOffset
-import com.jetbrains.python.psi.PyElementGenerator
+import com.intellij.refactoring.suggested.startOffset
 import com.jetbrains.python.psi.PyFile
 import software.aws.toolkits.core.utils.error
 import software.aws.toolkits.core.utils.getLogger
@@ -22,7 +22,6 @@ import software.aws.toolkits.jetbrains.services.codewhisperer.model.InvocationCo
 import software.aws.toolkits.jetbrains.services.codewhisperer.model.SessionContext
 import software.aws.toolkits.jetbrains.services.codewhisperer.popup.CodeWhispererPopupManager.Companion.CODEWHISPERER_USER_ACTION_PERFORMED
 import software.aws.toolkits.jetbrains.services.codewhisperer.popup.CodeWhispererUserActionListener
-import com.jetbrains.python.psi.LanguageLevel
 class CodeWhispererImportAdder {
 
     init {
@@ -38,7 +37,7 @@ class CodeWhispererImportAdder {
                     LOG.error { "AFTER ACCEPT" }
                     if (psiFile is PsiJavaFile) {
                         LOG.error { "JAVA" }
-                        getInstance().insertImportStatementJava(project, document, psiFile, "import java.util.ArrayList;","java.util.ArrayList")
+                        getInstance().insertImportStatementJava(project, document, psiFile, "import com.google.protobuf.ByteString;","com.google.protobuf.ByteString")
                     } else if (psiFile is PyFile) {
                         getInstance().insertImportStatementPython(project, document, psiFile, "import pandas as pd")
                     } else {
@@ -70,16 +69,15 @@ class CodeWhispererImportAdder {
                     psiJavaFile.importList?.add(importElement)
                 }
             } else {
-                //TODO:
                 LOG.error { "No local import importClass" }
                 val existingImports = psiJavaFile.importList?.allImportStatements
                 val existingPackages = psiJavaFile.packageStatement
                 var offset = 0
-                if(existingPackages != null) offset = existingPackages.endOffset+1
+                if(existingPackages != null) offset = existingPackages.endOffset
                 if(existingImports != null) {
-                    offset = existingImports.last().endOffset+1
+                    offset = existingImports.last().endOffset
                 }
-                this.insertRawImportStatementToDocument(project, document, statement, offset)
+                this.insertRawImportStatementToDocument(project, document, "\n"+statement, offset)
             }
         }
 
@@ -97,8 +95,15 @@ class CodeWhispererImportAdder {
         if (!exists) {
             LOG.error { "Import Stmt does not exists" }
             var offset = 0
-            if(currentImports.size != 0) offset = currentImports.last().endOffset
-            this.insertRawImportStatementToDocument(project, document, "\n"+statement, offset)
+            if(currentImports.size != 0) {
+                offset = currentImports.last().endOffset
+                this.insertRawImportStatementToDocument(project, document, "\n"+statement, offset)
+            }
+            else {
+                val stmt = pyFile.statements.first()
+                offset = stmt.startOffset
+                this.insertRawImportStatementToDocument(project, document, "\n"+statement + "\n", offset)
+            }
         }
     }
 

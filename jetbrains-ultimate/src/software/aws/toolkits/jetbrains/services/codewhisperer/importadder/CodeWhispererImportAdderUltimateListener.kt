@@ -23,7 +23,6 @@ class CodeWhispererImportAdderUltimateListener: CodeWhispererUserActionListener 
         val project = states.requestContext.project
         val document = rangeMarker.document
         val psiFile = PsiDocumentManager.getInstance(states.requestContext.project).getPsiFile(rangeMarker.document)
-        val language = states.requestContext.fileContextInfo.programmingLanguage
         LOG.error { "X AFTER ACCEPT" }
         if (psiFile is JSFile) {
             LOG.error { "Java script file" }
@@ -40,28 +39,26 @@ class CodeWhispererImportAdderUltimateListener: CodeWhispererUserActionListener 
         }
     }
 
-
+    // Javascript and Typescript
     private fun insertImportStatementJavascript(project: Project, document: Document, jsFile: JSFile, statement: String) {
         LOG.error{"JS"}
-        val currentImports = jsFile.statements
-        var exists = false;
-        currentImports.forEach {
+        val currentStatements = jsFile.statements
+        var exists = false
+        var offset = 0
+        currentStatements.forEachIndexed { index, it ->
             if (it.text == statement) {
                 exists = true
             }
+            if (it.text.startsWith("import")) {
+                offset = it.endOffset.coerceAtLeast(offset)
+            }
+            if (index == 0) {
+                offset = it.startOffset.coerceAtLeast(offset)
+            }
         }
         if (!exists) {
-            LOG.error { "Import Stmt does not exists" }
-            var offset = 0
-            if(currentImports.size != 0) {
-                offset = currentImports.last().endOffset
-                this.insertRawImportStatementToDocument(project, document, "\n"+statement, offset)
-            }
-            else {
-                val stmt = currentImports.first()
-                offset = stmt.startOffset
-                this.insertRawImportStatementToDocument(project, document, "\n"+statement + "\n", offset)
-            }
+            LOG.error { "Import Stmt does not exist" }
+            this.insertRawImportStatementToDocument(project, document, "\n"+statement + "\n", offset)
         }
     }
 

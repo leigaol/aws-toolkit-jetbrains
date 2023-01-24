@@ -33,7 +33,6 @@ class CodeWhispererImportAdder {
                     val project = states.requestContext.project
                     val document = rangeMarker.document
                     val psiFile = PsiDocumentManager.getInstance(states.requestContext.project).getPsiFile(rangeMarker.document)
-                    val language = states.requestContext.fileContextInfo.programmingLanguage
                     LOG.error { "AFTER ACCEPT" }
                     if (psiFile is PsiJavaFile) {
                         LOG.error { "JAVA" }

@@ -135,7 +135,8 @@
       "required":["content"],
       "members":{
         "content":{"shape":"CompletionContentString"},
-        "references":{"shape":"References"}
+        "references":{"shape":"References"},
+        "imports": {"shape": "Imports"}
       }
     },
     "CompletionContentString":{
@@ -150,6 +151,20 @@
       "max":10,
       "min":0
     },
+      "Imports":{
+          "type":"list",
+          "member":{"shape":"Import"},
+          "max":10,
+          "min":0
+      },
+      "Import":{
+          "type":"structure",
+          "members":{
+              "importStatement": {
+                  "shape": "String"
+              }
+          }
+      },
     "ConflictException":{
       "type":"structure",
       "required":["message"],

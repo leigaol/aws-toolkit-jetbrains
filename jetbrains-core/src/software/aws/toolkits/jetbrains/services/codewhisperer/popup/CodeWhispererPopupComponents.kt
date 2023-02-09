@@ -86,6 +86,20 @@ class CodeWhispererPopupComponents {
         addHorizontalGlue()
         add(kebabMenu, kebabMenuConstraints)
     }
+    val importLabel = JLabel().apply {
+        font = font.deriveFont(POPUP_INFO_TEXT_SIZE)
+        text = "Also add \"import pandas as pd\""
+    }
+
+    private val importPanel = JPanel(GridBagLayout()).apply {
+        border = BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(1, 0, 1, 0, POPUP_PANEL_SEPARATOR),
+            BorderFactory.createEmptyBorder(2, 6, 2, 5)
+        )
+        add(importLabel, inlineLabelConstraints)
+        addHorizontalGlue()
+    }
+
     val licenseCodeLabelPrefixText = JLabel().apply {
         text = message("codewhisperer.popup.reference.license_info.prefix", POPUP_REF_NOTICE_HEX)
         foreground = POPUP_REF_INFO
@@ -111,6 +125,7 @@ class CodeWhispererPopupComponents {
     val panel = JPanel(GridBagLayout()).apply {
         add(buttonsPanel, horizontalPanelConstraints)
         add(recommendationInfoPanel, horizontalPanelConstraints)
+        add(importPanel, horizontalPanelConstraints)
         add(codeReferencePanel, horizontalPanelConstraints)
     }
 

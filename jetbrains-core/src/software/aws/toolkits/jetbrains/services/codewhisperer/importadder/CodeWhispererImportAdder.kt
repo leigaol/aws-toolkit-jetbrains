@@ -22,6 +22,8 @@ import software.aws.toolkits.jetbrains.services.codewhisperer.model.InvocationCo
 import software.aws.toolkits.jetbrains.services.codewhisperer.model.SessionContext
 import software.aws.toolkits.jetbrains.services.codewhisperer.popup.CodeWhispererPopupManager.Companion.CODEWHISPERER_USER_ACTION_PERFORMED
 import software.aws.toolkits.jetbrains.services.codewhisperer.popup.CodeWhispererUserActionListener
+import software.aws.toolkits.jetbrains.services.codewhisperer.settings.CodeWhispererSettings
+
 class CodeWhispererImportAdder {
 
     init {
@@ -30,9 +32,13 @@ class CodeWhispererImportAdder {
             CODEWHISPERER_USER_ACTION_PERFORMED,
             object : CodeWhispererUserActionListener {
                 override fun afterAccept(states: InvocationContext, sessionContext: SessionContext, rangeMarker: RangeMarker) {
+                    if (!CodeWhispererSettings.getInstance().isImportAdderEnabled()) {
+                        return
+                    }
                     val project = states.requestContext.project
                     val document = rangeMarker.document
                     val psiFile = PsiDocumentManager.getInstance(states.requestContext.project).getPsiFile(rangeMarker.document)
+                    val acceptedRecommendation = states.recommendationContext.details[sessionContext.selectedIndex]
                     LOG.error { "AFTER ACCEPT" }
                     if (psiFile is PsiJavaFile) {
                         LOG.error { "JAVA" }
@@ -85,25 +91,23 @@ class CodeWhispererImportAdder {
     private fun insertImportStatementPython(project: Project, document: Document, pyFile: PyFile, statement: String) {
         LOG.error{"SPYTHON"}
         val currentImports = pyFile.importBlock
-        var exists = false;
         currentImports.forEach {
             if (it.text == statement) {
-                exists = true
+                return
             }
         }
-        if (!exists) {
-            LOG.error { "Import Stmt does not exists" }
-            var offset = 0
-            if(currentImports.size != 0) {
-                offset = currentImports.last().endOffset
-                this.insertRawImportStatementToDocument(project, document, "\n"+statement, offset)
-            }
-            else {
-                val stmt = pyFile.statements.first()
-                offset = stmt.startOffset
-                this.insertRawImportStatementToDocument(project, document, "\n"+statement + "\n", offset)
-            }
+        LOG.error { "Import Stmt does not exists" }
+        var offset = 0
+        if(currentImports.size != 0) {
+            offset = currentImports.last().endOffset
+            this.insertRawImportStatementToDocument(project, document, "\n"+statement, offset)
         }
+        else {
+            val stmt = pyFile.statements.first()
+            offset = stmt.startOffset
+            this.insertRawImportStatementToDocument(project, document, "\n"+statement + "\n", offset)
+        }
+
     }
 
 

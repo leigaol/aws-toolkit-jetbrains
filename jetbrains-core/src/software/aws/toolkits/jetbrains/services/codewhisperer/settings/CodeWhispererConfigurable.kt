@@ -62,6 +62,20 @@ class CodeWhispererConfigurable(private val project: Project) :
         }.rowComment(message("aws.settings.codewhisperer.include_code_with_reference.tooltip"))
 
         row {
+            checkBox(message("aws.settings.codewhisperer.automatic_import_adder")).apply {
+                connect.subscribe(
+                    CodeWhispererExplorerActionManager.CODEWHISPERER_ACTIVATION_CHANGED,
+                    object : CodeWhispererActivationChangedListener {
+                        override fun activationChanged(value: Boolean) {
+                            enabled(value)
+                        }
+                    }
+                )
+                enabled(invoke() && !isSso)
+                bindSelected(codeWhispererSettings::isImportAdderEnabled, codeWhispererSettings::toggleImportAdder)
+            }
+        }.rowComment(message("aws.settings.codewhisperer.automatic_import_adder.tooltip"))
+        row {
             checkBox(message("aws.settings.codewhisperer.configurable.opt_out.title")).apply {
                 connect.subscribe(
                     CodeWhispererExplorerActionManager.CODEWHISPERER_ACTIVATION_CHANGED,

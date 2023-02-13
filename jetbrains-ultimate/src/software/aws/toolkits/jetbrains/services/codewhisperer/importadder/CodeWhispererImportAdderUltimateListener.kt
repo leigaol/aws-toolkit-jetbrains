@@ -16,10 +16,14 @@ import software.aws.toolkits.core.utils.getLogger
 import software.aws.toolkits.jetbrains.services.codewhisperer.model.InvocationContext
 import software.aws.toolkits.jetbrains.services.codewhisperer.model.SessionContext
 import software.aws.toolkits.jetbrains.services.codewhisperer.popup.CodeWhispererUserActionListener
+import software.aws.toolkits.jetbrains.services.codewhisperer.settings.CodeWhispererSettings
 
 class CodeWhispererImportAdderUltimateListener: CodeWhispererUserActionListener {
 
     override fun afterAccept(states: InvocationContext, sessionContext: SessionContext, rangeMarker: RangeMarker) {
+        if (!CodeWhispererSettings.getInstance().isImportAdderEnabled()) {
+            return
+        }
         val project = states.requestContext.project
         val document = rangeMarker.document
         val psiFile = PsiDocumentManager.getInstance(states.requestContext.project).getPsiFile(rangeMarker.document)

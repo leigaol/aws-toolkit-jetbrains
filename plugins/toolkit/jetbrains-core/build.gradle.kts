@@ -26,6 +26,10 @@ intellijToolkit {
     ideFlavor.set(IdeFlavor.IC)
 }
 
+intellij {
+    plugins.add(project(":plugin-core"))
+}
+
 val changelog = tasks.register<GeneratePluginChangeLog>("pluginChangeLog") {
     includeUnreleased.set(true)
     changeLogFile.set(project.file("$buildDir/changelog/change-notes.xml"))
@@ -42,6 +46,11 @@ tasks.jar {
     from(changelog) {
         into("META-INF")
     }
+}
+
+tasks.integrationTest {
+    // cant run tests under authorization_grant with PKCE yet
+    systemProperty("aws.dev.useDAG", true)
 }
 
 val gatewayPluginXml = tasks.create<org.jetbrains.intellij.tasks.PatchPluginXmlTask>("patchPluginXmlForGateway") {
@@ -144,10 +153,24 @@ tasks.processTestResources {
     // TODO how can we remove this. Fails due to:
     // "customerUploadedEventSchemaMultipleTypes.json.txt is a duplicate but no duplicate handling strategy has been set"
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
 
-    // delete when fully split
-    // pull in shim to make tests pass
-    from(project(":plugin-toolkit:intellij").file("src/main/resources"))
+// delete when fully split
+// pull in shim to make tests pass
+val dummyPluginJar = tasks.register<Jar>("dummyPluginJar") {
+    archiveFileName.set("dummy.jar")
+
+    from(project.file("test-plugin-shim.xml")) {
+        rename { "plugin-shim.xml" }
+        into("META-INF")
+    }
+}
+
+tasks.prepareTestingSandbox {
+    dependsOn(dummyPluginJar)
+
+    intoChild(pluginName.map { "$it/lib" })
+        .from(dummyPluginJar)
 }
 
 dependencies {
@@ -196,6 +219,5 @@ dependencies {
     testRuntimeOnly(libs.slf4j.jdk14)
 
     // delete when fully split
-    testRuntimeOnly(project(":plugin-core:jetbrains-community"))
     testRuntimeOnly(project(":plugin-amazonq", "moduleOnlyJars"))
 }

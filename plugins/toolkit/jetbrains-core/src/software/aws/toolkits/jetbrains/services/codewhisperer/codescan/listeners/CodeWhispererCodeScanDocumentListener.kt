@@ -8,8 +8,6 @@ import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
-import software.aws.toolkits.core.utils.error
-import software.aws.toolkits.core.utils.getLogger
 import software.aws.toolkits.jetbrains.services.codewhisperer.codescan.CodeWhispererCodeScanIssue
 import software.aws.toolkits.jetbrains.services.codewhisperer.codescan.CodeWhispererCodeScanManager
 import software.aws.toolkits.jetbrains.services.codewhisperer.explorer.CodeWhispererExplorerActionManager
@@ -20,13 +18,10 @@ import javax.swing.tree.TreePath
 internal class CodeWhispererCodeScanDocumentListener(val project: Project) : DocumentListener {
 
     override fun documentChanged(event: DocumentEvent) {
+        val file = FileDocumentManager.getInstance().getFile(event.document) ?: return
         val scanManager = CodeWhispererCodeScanManager.getInstance(project)
         val treeModel = scanManager.getScanTree().model
-        val file = FileDocumentManager.getInstance().getFile(event.document)
-        if (file == null) {
-            LOG.error { "Cannot find file for document ${event.document}" }
-            return
-        }
+
         val editedTextRange = TextRange.create(event.offset, event.offset + event.oldLength)
         val nodes = scanManager.getOverlappingScanNodes(file, editedTextRange)
         nodes.forEach {
@@ -40,11 +35,7 @@ internal class CodeWhispererCodeScanDocumentListener(val project: Project) : Doc
         scanManager.updateScanNodes(file)
 
         if (editedTextRange.length > 0 && !CodeWhispererExplorerActionManager.getInstance().isMonthlyQuotaForCodeScansExceeded() && !isUserBuilderId(project)) {
-            scanManager.debouncedRunCodeScan(CodeWhispererConstants.CodeAnalysisScope.FILE)
+            scanManager.createDebouncedRunCodeScan(CodeWhispererConstants.CodeAnalysisScope.FILE)
         }
-    }
-
-    companion object {
-        private val LOG = getLogger<CodeWhispererCodeScanDocumentListener>()
     }
 }

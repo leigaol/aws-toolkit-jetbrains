@@ -4,6 +4,9 @@
 package software.aws.toolkits.jetbrains.services.amazonqFeatureDev.controller
 
 import com.intellij.notification.NotificationAction
+import software.aws.toolkits.core.utils.getLogger
+import software.aws.toolkits.core.utils.info
+import software.aws.toolkits.jetbrains.services.amazonqFeatureDev.FEATURE_NAME
 import software.aws.toolkits.jetbrains.services.amazonqFeatureDev.messages.FeatureDevMessageType
 import software.aws.toolkits.jetbrains.services.amazonqFeatureDev.messages.FollowUp
 import software.aws.toolkits.jetbrains.services.amazonqFeatureDev.messages.FollowUpStatusType
@@ -24,6 +27,8 @@ import software.aws.toolkits.jetbrains.utils.notifyInfo
 import software.aws.toolkits.resources.message
 
 suspend fun FeatureDevController.onCodeGeneration(session: Session, message: String, tabId: String) {
+    getLogger<FeatureDevController>().info { "$FEATURE_NAME conversation id ${session.conversationId}" }
+
     messenger.sendAsyncEventProgress(
         tabId = tabId,
         inProgress = true,

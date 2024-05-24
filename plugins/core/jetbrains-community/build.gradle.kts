@@ -66,6 +66,7 @@ dependencies {
         exclude(group = "org.apache.httpcomponents.client5")
     }
 
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
     // delete when fully split
     compileOnlyApi(project(":plugin-toolkit:core"))
     runtimeOnly(project(":plugin-toolkit:core"))

@@ -3,6 +3,8 @@
 
 package software.aws.toolkits.jetbrains.services.codewhisperer.editor
 
+import com.intellij.analysis.problemsView.ProblemsCollector
+import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -32,6 +34,12 @@ object CodeWhispererEditorUtil {
         val fileName = getFileName(psiFile)
         val programmingLanguage = psiFile.programmingLanguage()
         val fileRelativePath = getRelativePathToContentRoot(editor)
+        val pp = ProblemsCollector.getInstance(editor.project!!).getFileProblems(editor.virtualFile);
+
+        val problemsView = ProblemsView.getToolWindow(editor.project!!)
+        val problems = problemsView?.contentManager?.contents
+        
+
         return FileContextInfo(caretContext, fileName, programmingLanguage, fileRelativePath)
     }
 

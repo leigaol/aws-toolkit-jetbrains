@@ -5,6 +5,10 @@ package software.aws.toolkits.jetbrains.services.cwc.inline
 
 import com.github.difflib.text.DiffRow
 import com.github.difflib.text.DiffRowGenerator
+import com.intellij.analysis.problemsView.Problem
+import com.intellij.analysis.problemsView.ProblemsListener
+import com.intellij.analysis.problemsView.ProblemsCollector
+
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction

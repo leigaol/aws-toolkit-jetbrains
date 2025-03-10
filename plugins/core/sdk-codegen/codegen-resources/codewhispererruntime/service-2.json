@@ -208,6 +208,21 @@
                 { "shape": "AccessDeniedException" }
             ]
         },
+        "ListAvailableProfiles":{
+            "name":"ListAvailableProfiles",
+            "http":{
+                "method":"POST",
+                "requestUri":"/"
+            },
+            "input":{"shape":"ListAvailableProfilesRequest"},
+            "output":{"shape":"ListAvailableProfilesResponse"},
+            "errors":[
+                {"shape":"ThrottlingException"},
+                {"shape":"InternalServerException"},
+                {"shape":"ValidationException"},
+                {"shape":"AccessDeniedException"}
+            ]
+        },
         "ListCodeAnalysisFindings": {
             "name": "ListCodeAnalysisFindings",
             "http": {
@@ -386,6 +401,12 @@
             "type": "string",
             "enum": ["UNAUTHORIZED_CUSTOMIZATION_RESOURCE_ACCESS"]
         },
+        "ActiveFunctionalityList":{
+            "type":"list",
+            "member":{"shape":"FunctionalityName"},
+            "max":10,
+            "min":0
+        },
         "AdditionalContentEntry": {
             "type": "structure",
             "required": ["name", "description"],
@@ -454,6 +475,25 @@
             "min": 0,
             "sensitive": true
         },
+        "ApplicationProperties":{
+            "type":"structure",
+            "required":[
+                "tenantId",
+                "applicationArn",
+                "tenantUrl",
+                "applicationType"
+            ],
+            "members":{
+                "tenantId":{"shape":"TenantId"},
+                "applicationArn":{"shape":"ResourceArn"},
+                "tenantUrl":{"shape":"Url"},
+                "applicationType":{"shape":"FunctionalityName"}
+            }
+        },
+        "ApplicationPropertiesList":{
+            "type":"list",
+            "member":{"shape":"ApplicationProperties"}
+        },
         "ArtifactId": {
             "type": "string",
             "max": 126,
@@ -497,6 +537,14 @@
         "Boolean": {
             "type": "boolean",
             "box": true
+        },
+        "ByUserAnalytics":{
+            "type":"structure",
+            "required":["toggle"],
+            "members":{
+                "s3Uri":{"shape":"S3Uri"},
+                "toggle":{"shape":"OptInFeatureToggle"}
+            }
         },
         "ChatAddMessageEvent": {
             "type": "structure",
@@ -939,6 +987,13 @@
             "type": "list",
             "member": { "shape": "Customization" }
         },
+        "DashboardAnalytics":{
+            "type":"structure",
+            "required":["toggle"],
+            "members":{
+                "toggle":{"shape":"OptInFeatureToggle"}
+            }
+        },
         "DeleteTaskAssistConversationRequest": {
             "type": "structure",
             "required": ["conversationId"],
@@ -1222,6 +1277,11 @@
             "max": 100,
             "min": 0
         },
+        "ErrorDetails":{
+            "type":"string",
+            "max":2048,
+            "min":0
+        },
         "FeatureDevCodeAcceptanceEvent": {
             "type": "structure",
             "required": [
@@ -1370,6 +1430,20 @@
             "min": 0,
             "sensitive": true
         },
+        "FunctionalityName":{
+            "type":"string",
+            "enum":[
+                "COMPLETIONS",
+                "ANALYSIS",
+                "CONVERSATIONS",
+                "TASK_ASSIST",
+                "TRANSFORMATIONS",
+                "CHAT_CUSTOMIZATION",
+                "TRANSFORMATIONS_WEBAPP"
+            ],
+            "max":64,
+            "min":1
+        },
         "GenerateCompletionsRequest": {
             "type": "structure",
             "required": ["fileContext"],
@@ -1386,8 +1460,7 @@
                 "customizationArn": { "shape": "CustomizationArn" },
                 "optOutPreference": { "shape": "OptOutPreference" },
                 "userContext": { "shape": "UserContext" },
-                "profileArn": { "shape": "ProfileArn" },
-                "workspaceId": { "shape": "UUID" }
+                "profileArn": { "shape": "ProfileArn" }
             }
         },
         "GenerateCompletionsRequestMaxResultsInteger": {
@@ -1548,6 +1621,13 @@
                 "statement": { "shape": "ImportStatementString" }
             }
         },
+        "IdentityDetails":{
+            "type":"structure",
+            "members":{
+                "ssoIdentityDetails":{"shape":"SSOIdentityDetails"}
+            },
+            "union":true
+        },
         "ImportStatementString": {
             "type": "string",
             "max": 1024,
@@ -1636,6 +1716,27 @@
                 "nextToken": { "shape": "Base64EncodedPaginationToken" }
             }
         },
+        "ListAvailableProfilesRequest":{
+            "type":"structure",
+            "members":{
+                "maxResults":{"shape":"ListAvailableProfilesRequestMaxResultsInteger"},
+                "nextToken":{"shape":"Base64EncodedPaginationToken"}
+            }
+        },
+        "ListAvailableProfilesRequestMaxResultsInteger":{
+            "type":"integer",
+            "box":true,
+            "max":10,
+            "min":1
+        },
+        "ListAvailableProfilesResponse":{
+            "type":"structure",
+            "required":["profiles"],
+            "members":{
+                "profiles":{"shape":"ProfileList"},
+                "nextToken":{"shape":"Base64EncodedPaginationToken"}
+            }
+        },
         "ListCodeAnalysisFindingsRequest": {
             "type": "structure",
             "required": ["jobId", "codeAnalysisFindingsSchema"],
@@ -1704,11 +1805,45 @@
             "min": 1,
             "pattern": "[-a-zA-Z0-9._]*"
         },
+        "Notifications":{
+            "type":"list",
+            "member":{"shape":"NotificationsFeature"},
+            "max":10,
+            "min":0
+        },
+        "NotificationsFeature":{
+            "type":"structure",
+            "required":[
+                "feature",
+                "toggle"
+            ],
+            "members":{
+                "feature":{"shape":"FeatureName"},
+                "toggle":{"shape":"OptInFeatureToggle"}
+            }
+        },
         "OperatingSystem": {
             "type": "string",
             "enum": ["MAC", "WINDOWS", "LINUX"],
             "max": 64,
             "min": 1
+        },
+        "OptInFeatureToggle":{
+            "type":"string",
+            "enum":[
+                "ON",
+                "OFF"
+            ]
+        },
+        "OptInFeatures":{
+            "type":"structure",
+            "members":{
+                "promptLogging":{"shape":"PromptLogging"},
+                "byUserAnalytics":{"shape":"ByUserAnalytics"},
+                "dashboardAnalytics":{"shape":"DashboardAnalytics"},
+                "notifications":{"shape":"Notifications"},
+                "workspaceContext":{"shape":"WorkspaceContext"}
+            }
         },
         "OptOutPreference": {
             "type": "string",
@@ -1768,6 +1903,57 @@
             "sensitive": true
         },
         "PrimitiveInteger": { "type": "integer" },
+        "Profile":{
+            "type":"structure",
+            "required":[
+                "arn",
+                "profileName"
+            ],
+            "members":{
+                "arn":{"shape":"ProfileArn"},
+                "identityDetails":{"shape":"IdentityDetails"},
+                "profileName":{"shape":"ProfileName"},
+                "referenceTrackerConfiguration":{"shape":"ReferenceTrackerConfiguration"},
+                "kmsKeyArn":{"shape":"ResourceArn"},
+                "activeFunctionalities":{"shape":"ActiveFunctionalityList"},
+                "status":{"shape":"ProfileStatus"},
+                "errorDetails":{"shape":"ErrorDetails"},
+                "resourcePolicy":{"shape":"ResourcePolicy"},
+                "profileType":{"shape":"ProfileType"},
+                "optInFeatures":{"shape":"OptInFeatures"},
+                "permissionUpdateRequired":{"shape":"Boolean"},
+                "applicationProperties":{"shape":"ApplicationPropertiesList"}
+            }
+        },
+        "ProfileList":{
+            "type":"list",
+            "member":{"shape":"Profile"}
+        },
+        "ProfileName":{
+            "type":"string",
+            "max":100,
+            "min":1,
+            "pattern":"[a-zA-Z][a-zA-Z0-9_-]*"
+        },
+        "ProfileStatus":{
+            "type":"string",
+            "enum":[
+                "ACTIVE",
+                "CREATING",
+                "CREATE_FAILED",
+                "UPDATING",
+                "UPDATE_FAILED",
+                "DELETING",
+                "DELETE_FAILED"
+            ]
+        },
+        "ProfileType":{
+            "type":"string",
+            "enum":[
+                "Q_DEVELOPER",
+                "CODEWHISPERER"
+            ]
+        },
         "ProfileArn": {
             "type": "string",
             "max": 950,
@@ -1790,6 +1976,17 @@
         "ProgressUpdates": {
             "type": "list",
             "member": { "shape": "TransformationProgressUpdate" }
+        },
+        "PromptLogging":{
+            "type":"structure",
+            "required":[
+                "s3Uri",
+                "toggle"
+            ],
+            "members":{
+                "s3Uri":{"shape":"S3Uri"},
+                "toggle":{"shape":"OptInFeatureToggle"}
+            }
         },
         "Range": {
             "type": "structure",
@@ -1904,6 +2101,20 @@
             },
             "exception": true
         },
+        "ResourcePolicy":{
+            "type":"structure",
+            "required":["effect"],
+            "members":{
+                "effect":{"shape":"ResourcePolicyEffect"}
+            }
+        },
+        "ResourcePolicyEffect":{
+            "type":"string",
+            "enum":[
+                "ALLOW",
+                "DENY"
+            ]
+        },
         "ResumeTransformationRequest": {
             "type": "structure",
             "required": ["transformationJobId"],
@@ -1939,6 +2150,30 @@
             "max": 1024,
             "min": 0,
             "sensitive": true
+        },
+        "S3Uri":{
+            "type":"string",
+            "max":1024,
+            "min":1,
+            "pattern":"s3://((?!xn--)[a-z0-9](?![^/]*[.]{2})[a-z0-9-.]{1,61}[a-z0-9](?<!-s3alias)(?<!--ol-s3)(?<!([0-9]{1,3}\\.)([0-9]{1,3}\\.)([0-9]{1,3}\\.)([0-9]{1,3})))/(.{0,1024})"
+        },
+        "SSOIdentityDetails":{
+            "type":"structure",
+            "required":[
+                "instanceArn",
+                "oidcClientId"
+            ],
+            "members":{
+                "instanceArn":{"shape":"ResourceArn"},
+                "oidcClientId":{"shape":"String"},
+                "ssoRegion":{"shape":"SSORegion"}
+            }
+        },
+        "SSORegion":{
+            "type":"string",
+            "max":63,
+            "min":1,
+            "pattern":"[-a-z0-9]{1,63}"
         },
         "SendTelemetryEventRequest": {
             "type": "structure",
@@ -2429,6 +2664,11 @@
             },
             "union": true
         },
+        "TenantId":{
+            "type":"string",
+            "max":1024,
+            "min":1
+        },
         "TerminalUserInteractionEvent": {
             "type": "structure",
             "members": {
@@ -2849,6 +3089,11 @@
                 "CODE_FIX_GENERATION"
             ]
         },
+        "Url":{
+            "type":"string",
+            "max":1024,
+            "min":1
+        },
         "UserContext": {
             "type": "structure",
             "required": ["ideCategory", "operatingSystem", "product"],
@@ -2982,6 +3227,13 @@
                 "CONTENT_LENGTH_EXCEEDS_THRESHOLD",
                 "INVALID_KMS_GRANT"
             ]
+        },
+        "WorkspaceContext":{
+            "type":"structure",
+            "required":["toggle"],
+            "members":{
+                "toggle":{"shape":"OptInFeatureToggle"}
+            }
         },
         "WorkspaceState": {
             "type": "structure",

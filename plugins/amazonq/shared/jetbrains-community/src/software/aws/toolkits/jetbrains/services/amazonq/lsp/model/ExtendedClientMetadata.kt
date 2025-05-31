@@ -19,6 +19,7 @@ data class AwsMetadata(
 data class AwsClientCapabilities(
     val q: DeveloperProfiles,
     val window: WindowSettings,
+    val mcp: Boolean,
 )
 
 data class DeveloperProfiles(
@@ -64,7 +65,8 @@ fun createExtendedClientMetadata(project: Project): ExtendedClientMetadata {
                 ),
                 window = WindowSettings(
                     showSaveFileDialog = true
-                )
+                ),
+                mcp = true
             ),
             contextConfiguration = ContextConfiguration(
                 workspaceIdentifier = project.getBasePath()
